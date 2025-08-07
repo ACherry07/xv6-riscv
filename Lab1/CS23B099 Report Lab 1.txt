@@ -1,0 +1,31 @@
+Issues I faced during Installation:
+I already had docker installed hence that didn't require any changes
+I had some instance of xv6-riscv already present in my system and I wasn't sure if it was the same as what was required so I had to remove it and set it up again from git.
+
+Other Issues I faced (but not in the installation step):
+I had tried to create my HelloWorld.S file inside the docker instance in the xv6-riscv folder but then I was not able to access any text editor to write content to the file I created since they were not present in the docker instance. In addition, I was not able to install them inside the docker image. Thus I tried to edit the HelloWorld file via my regular WSL. This didn't work for a long time and it kept throwing errors such as read-only file no permission to overwrite. I spent a long time trying to figure out what was going wrong but I finally asked a TA for help and I found out that when I create a file within the docker instance then it has read-only permissions outside the docker image. Hence I had to create a separate file in WSL and edit in WSL itself which would then be accessible within the Docker image.
+
+Line by Line Code Explanation
+.section .data #This declares the data section of the Assembly file
+helloworld: .asciz "Hello %s! Welcome to CS3500\n" #This assigns some memory to the given string whose first 							   #character's address can be accessed via helloworld
+rollno: .asciz "CS23B099"			   #same as above for a rollno
+
+.section .text
+.global main
+main:
+    #The following commented lines of code are an 
+    #alternate way of executing the same task provided helloworld
+    #has the rollno included
+    # li a0, 1 #The first argument would be the file descriptor which in this case is write to stdout
+    # la a1, helloworld #the second argument is the pointer to the first character in the string
+			#the third argument is the length to be printed. if nothing is mentioned it prints till 			#the first \0
+    # li a7, 16         #here 16 is the syscall for write in xv6
+    # ecall   		#performs an ecall to carry out the write
+
+    la a0, helloworld #this method is similar to a printf statement in c
+		      #the first argument is the overall string
+    la a1, rollno     #all other arguments will occur in place of %s, %d etc.
+    call printf       #calls the print f function
+
+    li a7, 2 #here 2 is the syscall for exit in xv6
+    ecall    #performs an ecall to exit the program
