@@ -324,13 +324,33 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
       panic("uvmcopy: page not present");
     pa = PTE2PA(*pte);
     flags = PTE_FLAGS(*pte);
-    if((mem = kalloc()) == 0)
-      goto err;
-    memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
-      kfree(mem);
+    //This code was added by Ashish CS23B099 for Lab5
+  
+    // if((mem = kalloc()) == 0)
+    //   goto err;
+    // memmove(mem, (char*)pa, PGSIZE);
+    
+    if(flags & PTE_W){
+      //modify for parent
+      *pte &= ~PTE_W;
+      *pte |= PTE_COW;
+
+      //modify for child
+      flags &= ~PTE_W;
+      flags |= PTE_COW;
+    }
+
+    add_ref(pa);
+
+    // if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+    //   kfree(mem);
+    //   goto err;
+    // }
+
+    if(mappages(new, i, PGSIZE, pa, flags) != 0){
       goto err;
     }
+    //Added code ends here
   }
   return 0;
 
